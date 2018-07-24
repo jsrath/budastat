@@ -1,3 +1,164 @@
+/* Menu Toggler
+--------------------------------------------------- */
+
+const sidebar = document.querySelector('.sidebar-container');
+const main = document.querySelector('.main-container');
+const menuToggle = document.querySelector('.menu-toggle');
+
+
+function showMenu() {
+  sidebar.classList.toggle('visible');
+}
+
+menuToggle.addEventListener('click', showMenu);
+
+main.addEventListener('click', function () {
+  if (sidebar.offsetParent !== null && window.innerWidth < 800) {
+    showMenu();
+  }
+});
+
+window.addEventListener('click', function (event) {
+  if (sidebar.offsetParent !== null && window.innerWidth < 800 && event.pageY > main.getBoundingClientRect().bottom && event.pageX > sidebar.getBoundingClientRect().width) {
+    showMenu();
+  }
+});
+
+/* Sub Menu Toggler
+--------------------------------------------------- */
+
+const subMenu = document.getElementsByClassName('sub-menu');
+
+for (let i = 0; i < subMenu.length; i++) {
+  subMenu[i].addEventListener('click', function () {
+    this.classList.toggle('active');
+    let panel = this.nextElementSibling;
+    if (panel.style.maxHeight) {
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+    }
+  });
+}
+
+
+/* Colors
+--------------------------------------------------- */
+
+let rand = function () {
+  return Math.floor(Math.random() * 14) + 1;
+}
+
+let getColor = function () {
+  switch (rand()) {
+    case 1:
+      return ['#F8BBD0', ' #880E4F']
+    case 2:
+      return ['#E1BEE7', ' #4A148C']
+    case 3:
+      return ['#D1C4E9', ' #311B92']
+    case 4:
+      return ['#C5CAE9', ' #1A237E']
+    case 5:
+      return ['#BBDEFB', ' #0D47A1']
+    case 6:
+      return ['#B3E5FC', ' #01579B']
+    case 7:
+      return ['#B2EBF2', ' #006064']
+    case 8:
+      return ['#B2DFDB', ' #004D40']
+    case 9:
+      return ['#C8E6C9', ' #1B5E20']
+    case 10:
+      return ['#DCEDC8', ' #33691E']
+    case 11:
+      return ['#F0F4C3', ' #827717']
+    case 12:
+      return ['#FFF9C4', ' #F57F17']
+    case 13:
+      return ['#FFECB3', ' #FF6F00']
+    case 14:
+      return ['#FFE0B2', ' #E65100']
+  }
+}
+
+function colorMap(data, description) {
+
+  /* Get Data Values
+  --------------------------------------------------- */
+
+  let values = data.map(element => {
+    return element[1]
+  });
+
+  let scaleColors = getColor();
+
+  /* Get Start and End Colors
+ --------------------------------------------------- */
+
+  let color = d3.scaleLinear()
+    .domain([d3.min(values), d3.max(values)])
+    .range(scaleColors);
+
+  /* Fill Map with Colors
+  --------------------------------------------------- */
+
+  data.forEach(function (d) {
+    d3.select('g#' + d[0])
+      .attr('fill', color(d[1]))
+  });
+
+  const scale = d3.select('.scale-container')
+  const defs = scale.select('defs')
+
+  defs.select('stop')
+    .attr('offset', '0%')
+    .attr('stop-color', scaleColors[0])
+    .attr('stop-opacity', 1);
+
+  defs.select('stop:nth-child(2)')
+    .attr('offset', '100%')
+    .attr('stop-color', scaleColors[1])
+    .attr('stop-opacity', 1);
+
+  scale.select('rect')
+    .style('fill', 'url(#gradient)')
+    .style('stroke', 'black')
+    .style('stroke-width', '1px');
+
+
+  /* Initialize Tooltip
+  --------------------------------------------------- */
+
+  let tooltip = d3.select('body')
+    .append('div')
+    .attr('class', 'tooltip');
+
+  /* Set Tooltip Text and Behavior
+  --------------------------------------------------- */
+
+  data.forEach(function (d) {
+    d3.select('g#' + d[0])
+      .on('mouseover', function () {
+        return tooltip.style('display', 'block').html(`<h2>District ${d[0].slice(2, 4)}</h2><p>${d[1] < 1 ? (d[1] * 100).toFixed(1) + '%' : Number(d[1]).toLocaleString()}</p>`);
+      })
+      .on('mousemove', function () {
+        return tooltip.style('top', (d3.event.pageY + 20) + 'px').style('left', (d3.event.pageX + 30) + 'px');
+      })
+      .on('mouseout', function () {
+        return tooltip.style('display', 'none');
+      });
+  });
+
+  /* Set Data Description in the Header
+  --------------------------------------------------- */
+
+  document.getElementById('description').innerText = description;
+  document.getElementById('scale-min').innerText = `${d3.min(values) < 1 ? (d3.min(values) * 100).toFixed(1) + '%' : Number(d3.min(values)).toLocaleString()}`;
+  document.getElementById('scale-max').innerText = `${d3.max(values) < 1 ? (d3.max(values) * 100).toFixed(1) + '%' : Number(d3.max(values)).toLocaleString()}`;
+
+}
+
 /* Data
 --------------------------------------------------- */
 
@@ -677,167 +838,6 @@ const floorSpace = [
   ["bp22", 78],
   ["bp23", 76],
 ];
-
-/* Menu Toggler
---------------------------------------------------- */
-
-const sidebar = document.querySelector('.sidebar-container');
-const main = document.querySelector('.main-container');
-const menuToggle = document.querySelector('.menu-toggle');
-
-
-function showMenu() {
-  sidebar.classList.toggle('visible');
-}
-
-menuToggle.addEventListener('click', showMenu);
-
-main.addEventListener('click', function () {
-  if (sidebar.offsetParent !== null && window.innerWidth < 800) {
-    showMenu();
-  }
-});
-
-window.addEventListener('click', function (event) {
-  if (sidebar.offsetParent !== null && window.innerWidth < 800 && event.pageY > main.getBoundingClientRect().bottom && event.pageX > sidebar.getBoundingClientRect().width) {
-    showMenu();
-  }
-});
-
-/* Sub Menu Toggler
---------------------------------------------------- */
-
-const subMenu = document.getElementsByClassName('sub-menu');
-
-for (let i = 0; i < subMenu.length; i++) {
-  subMenu[i].addEventListener('click', function () {
-    this.classList.toggle('active');
-    let panel = this.nextElementSibling;
-    if (panel.style.maxHeight) {
-      panel.style.maxHeight = null;
-    } else {
-      panel.style.maxHeight = panel.scrollHeight + 'px';
-    }
-  });
-}
-
-
-/* Colors
---------------------------------------------------- */
-
-let rand = function () {
-  return Math.floor(Math.random() * 14) + 1;
-}
-
-let getColor = function () {
-  switch (rand()) {
-    case 1:
-      return ['#F8BBD0', ' #880E4F']
-    case 2:
-      return ['#E1BEE7', ' #4A148C']
-    case 3:
-      return ['#D1C4E9', ' #311B92']
-    case 4:
-      return ['#C5CAE9', ' #1A237E']
-    case 5:
-      return ['#BBDEFB', ' #0D47A1']
-    case 6:
-      return ['#B3E5FC', ' #01579B']
-    case 7:
-      return ['#B2EBF2', ' #006064']
-    case 8:
-      return ['#B2DFDB', ' #004D40']
-    case 9:
-      return ['#C8E6C9', ' #1B5E20']
-    case 10:
-      return ['#DCEDC8', ' #33691E']
-    case 11:
-      return ['#F0F4C3', ' #827717']
-    case 12:
-      return ['#FFF9C4', ' #F57F17']
-    case 13:
-      return ['#FFECB3', ' #FF6F00']
-    case 14:
-      return ['#FFE0B2', ' #E65100']
-  }
-}
-
-function colorMap(data, description) {
-
-  /* Get Data Values
-  --------------------------------------------------- */
-
-  let values = data.map(element => {
-    return element[1]
-  });
-
-  let scaleColors = getColor();
-
-  /* Get Start and End Colors
- --------------------------------------------------- */
-
-  let color = d3.scaleLinear()
-    .domain([d3.min(values), d3.max(values)])
-    .range(scaleColors);
-
-  /* Fill Map with Colors
-  --------------------------------------------------- */
-
-  data.forEach(function (d) {
-    d3.select('g#' + d[0])
-      .attr('fill', color(d[1]))
-  });
-
-  const scale = d3.select('.scale-container')
-  const defs = scale.select('defs')
-
-  defs.select('stop')
-    .attr('offset', '0%')
-    .attr('stop-color', scaleColors[0])
-    .attr('stop-opacity', 1);
-
-  defs.select('stop:nth-child(2)')
-    .attr('offset', '100%')
-    .attr('stop-color', scaleColors[1])
-    .attr('stop-opacity', 1);
-
-  scale.select('rect')
-    .style('fill', 'url(#gradient)')
-    .style('stroke', 'black')
-    .style('stroke-width', '1px');
-
-
-  /* Initialize Tooltip
-  --------------------------------------------------- */
-
-  let tooltip = d3.select('body')
-    .append('div')
-    .attr('class', 'tooltip');
-
-  /* Set Tooltip Text and Behavior
-  --------------------------------------------------- */
-
-  data.forEach(function (d) {
-    d3.select('g#' + d[0])
-      .on('mouseover', function () {
-        return tooltip.style('display', 'block').html(`<h2>District ${d[0].slice(2, 4)}</h2><p>${d[1] < 1 ? (d[1] * 100).toFixed(1) + '%' : Number(d[1]).toLocaleString()}</p>`);
-      })
-      .on('mousemove', function () {
-        return tooltip.style('top', (d3.event.pageY + 20) + 'px').style('left', (d3.event.pageX + 30) + 'px');
-      })
-      .on('mouseout', function () {
-        return tooltip.style('display', 'none');
-      });
-  });
-
-  /* Set Data Description in the Header
-  --------------------------------------------------- */
-
-  document.getElementById('description').innerText = description;
-  document.getElementById('scale-min').innerText = `${d3.min(values) < 1 ? (d3.min(values) * 100).toFixed(1) + '%' : Number(d3.min(values)).toLocaleString()}`;
-  document.getElementById('scale-max').innerText = `${d3.max(values) < 1 ? (d3.max(values) * 100).toFixed(1) + '%' : Number(d3.max(values)).toLocaleString()}`;
-
-}
 
 /* Event Listeners for Each Data Set
 ---------------------------------------------------------------------- */
